@@ -1,3 +1,26 @@
+def is_in_range(start, stop=None, step = 1):
+    """
+    A naive implementation would be:
+    return lambda x: x in range(start, stop, step)
+    """
+    
+    def wrapped(x):
+        try:
+            x = x.__index__()
+        except AttributeError:
+            return False
+        if type(x) is not int: return False
+        q, r = divmod(x - start, step)
+        if r != 0: return False
+        if step > 0:
+            return x < stop
+        return x > stop
+        
+    if step == 0: raise ValueError("is_in_range() arg 3 must not be zero")
+    if stop is None:
+         start, stop = 0, start
+    return lambda x: (type(x) is int) and (x - start) % step 
+
 def test(T: list) -> bool:
     return all(T[i] == i for i in T if type(i) is int and 0 <= i < len(T))
     
