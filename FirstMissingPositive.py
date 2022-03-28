@@ -93,11 +93,17 @@ def FMNN_naive(T: list) -> int:
 def FMNN_sort(T: list) -> int:
     """
     The time complexity is linearithmic in len(T).
-    The space complexity is that of timsort.
+    The space complexity is that of timsort;
+    it could be bounded if timsort was replaced with, say, heapsort.
     """
-    print(T)
-    T.sort(key = lambda x: x if type(x) is int and 0 <= x < len(T) else len(T))
-    print(T)
+    
+    n = len(T)
+    T.sort(key = lambda x: x if is_in_range(n)(x) else n)
+    n = 0
+    it = iter(T)
+    while n in it: n += 1
+    return n
+
 
 def FMNN_linear_linear(T: list) -> int:
     """
@@ -113,8 +119,8 @@ def FMNN_linear_linear(T: list) -> int:
         n += 1
     return n
     
-T = [7, 8, 0, 3, 1, 15, 2, 2, "aze"]
-FMNN_sort(T)
+T = [7, 5, 8, 0, 3, "toto", 1, 15, 2, 5, 2, 0, 1, 5, "aze"]
+print(FMNN_sort(T))
         
 if __name__ == "__main__":
     print("Entering doctest mode !")
