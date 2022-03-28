@@ -16,7 +16,7 @@ def is_in_range(start: int, stop: int | None = None, step: int = 1):
     False
     >>> all(is_in_range(start, stop, step)(x) for x, start, stop, step in [(9, 1, 15, 4), (0, 8, -3, -2)])
     True
-    >>> any(is_in_range(start, stop, step)(x) for x, start, stop, step in [])
+    >>> any(is_in_range(start, stop, step)(x) for x, start, stop, step in [(2, 1, 9, 2), (7, 2, 7, 2), (-6, 1, -10, - 3)])
     False
     """
     
@@ -39,97 +39,84 @@ def is_in_range(start: int, stop: int | None = None, step: int = 1):
 def segregate(T: list, p: Callable[[Any], bool]) -> int:
     """
     >>> p = lambda x: bool(x)
-    >>> T = []; segregate(T, p) == 0; T
-    True
+    >>> T = []; segregate(T, p); T
+    0
     []
-    >>> T = [0]; s(T, p); T
-    True
+    >>> T = [0]; segregate(T, p); T
+    0
     [0]
-    >>> T = [1]; s(T, p); T
-    True
+    >>> T = [1]; segregate(T, p); T
+    1
     [1]
-    >>> T = [2, 2]; s(T, p); T
-    True
-    [2, 2]
-    >>> T = [0, 0, 0]; s(T, p); T
-    True
+    >>> T = [1, 1]; segregate(T, p); T
+    2
+    [1, 1]
+    >>> T = [0, 0, 0]; segregate(T, p); T
+    0
     [0, 0, 0]
-    >>> T = [0, 1, 1, 0]; s(T, p); T
-    True
+    >>> T = [0, 1, 1, 0]; segregate(T, p); T
+    2
     [1, 1, 0, 0]
-    >>> T = [1, 0, 0, 1]; s(T, p); T
-    True
-    [1, 1, 0, 0]
-    >>> T = [1, 1, 1, 0, 0]; s(T, p); T
-    True
+    >>> T = [1, 0, 1, 0, 1]; segregate(T, p); T
+    3
     [1, 1, 1, 0, 0]
+    >>> T = [1, 1, 1, 0, 0, 0]; segregate(T, p); T
+    3
+    [1, 1, 1, 0, 0, 0]
 
-    If T != [] then the predicate p is called exactly len(T) - 1 times.
-    If segregate(T, p) == n then 
+    If T != [] then the predicate p is called exactly len(T) times.
    """
     if not T:
         return 0
     i = 0
     j = len(T) - 1
     while i < j:
+        # invariant: all(p(t) for t in T[:i])
+        # invariant: not any(p(t) for t in T[j + 1:])
         if p(T[i]):
             i += 1
         else:
             T[i], T[j] = T[j], T[i]
             j -= 1
-    return i
+    return i + bool(p(T[i]))
+
+def FMNN_naive(T: list) -> int:
+    """
+    The time complexity is quadratic in len(T).
+    The space complexity is bounded.
+    """    
+    n = 0
+    while n in T:
+        n += 1
+    return n
+
+def FMNN_sort(T: list) -> int:
+    """
+    The time complexity is linearithmic in len(T).
+    The space complexity is that of timsort.
+    """
+    print(T)
+    T.sort(key = lambda x: x if type(x) is int and 0 <= x < len(T) else len(T))
+    print(T)
+
+def FMNN_linear_linear(T: list) -> int:
+    """
+    The time complexity is linear in len(T).
+    The space complexity is also linear in len(T).
+    """
+    is_here = [False] * len(T)     
+    for t in T:
+        if is_in_range(len(T))(t):
+            is_here[t] = True
+    n = 0
+    while is_here[n]:
+        n += 1
+    return n
+    
+T = [7, 8, 0, 3, 1, 15, 2, 2, "aze"]
+FMNN_sort(T)
         
-def test_segregate(T, p):
-    n = segregate(T, p)
-    s = sum(p(t) for t in T)  
-    return (n + p(T[n]) == s) and all(p(T[i]) for i in range(s)) and not any(p(T[i]) for i in range(s + 1, len(T)))
-
-p = lambda x: bool(x)
-for T in [[0], [1], [2, 2], [0, 0, 0], [0, 1, 1, 0], [1, 0, 0, 1], [1, 1, 1, 0, 0]]:
-    assert test_segregate(T, p)
-    
-    # print(T, end = " ")
-    # n = segregate(T, p)
-    # print(n + p(T[n]), sum(p(t) for t in T), T)
-
-            
-# def test(T: list) -> bool:
-#     return all(T[i] == i for i in T if type(i) is int and 0 <= i < len(T))
-    
-
-# def swap(T: list, i: int, j: int) -> None:
-#     T[i], T[j] = T[j], T[i]
-
-
-# def toto(T: list) -> None:
-#     for i in range(len(T)):
-#         assert all(T[j] == j for j in T[:i] if type(j) is int and 0 <= j < len(T)) # Invariant
-#         j = T[i]
-#         while type(j) is int and 0 <= j < len(T) and j != T[j]:
-#             assert T[i] != i and T[T[i]] != T[i] # Invariant
-#             # Swapping T[i] and T[j] ...
-#             T[i] = T[j] # The number of fixed points does not decrease 
-#             T[j] = j    # The number of fixed points increases by one
-#             # ... T[i] and T[j] are swapped.
-#             j = T[i]
-
-# T1 = [1, 8, 6, 5, 7, -2, -11, 2, 14]
-# T2 = [1, 2, -8, 5, 7, 0, -11, 14]
-# T3 = [6, 3, 3, 2, 2, 5, 0, -1, 2, "za", 0, 1, -1, 12, 1, -3, 1]
-# T4 = list("azertrt") + [2] 
-# T5 = list(reversed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
-
-# for T in [T1, T2, T3, T4, T5]:
-#     print(maximum_fixed_points(T), T, end = " ")
-#     toto(T)
-#     print(maximum_fixed_points(T), T)
-# for T in [T1, T2, T3, T4, T5]:
-#     print(smallest_missing_nonnegative_integer(T), T)
-
-# assert smallest_missing_nonnegative_integer([1, 2, -8, 5, 7, 0, -11, 14]) == 3
-# assert smallest_missing_nonnegative_integer([-1, 3, 3, 2, 2, 5, 0, 6, 2, "za", 0, 1,  -1, 12, 1, -3, 1]) == 4
-
 if __name__ == "__main__":
-    print("Doctest mode !")
+    print("Entering doctest mode !")
     import doctest
-    doctest.testmod()
+    doctest.testmod()   
