@@ -1,7 +1,9 @@
-from typing import Callable, Any
+from typing import Any
+from collections.abc import Callable, MutableSequence
+from numbers import Integral
 
 
-def is_in_range(start: int, stop: int | None = None, step: int = 1):
+def is_in_range(start: Integral, stop: Integral | None = None, step: Integral = 1):
     """
     A naive implementation would be:
     return lambda x: x in range(start, stop, step)
@@ -21,7 +23,7 @@ def is_in_range(start: int, stop: int | None = None, step: int = 1):
     """
     
     def wrapped(x):
-        if type(x) is not int:
+        if not isinstance(x, Integral):
             return False
         q, r = divmod(x - start, step)
         if r != 0 or q < 0:
@@ -36,7 +38,7 @@ def is_in_range(start: int, stop: int | None = None, step: int = 1):
     return wrapped
 
 
-def segregate(T: list, p: Callable[[Any], bool]) -> int:
+def segregate(T: MutableSequence, p: Callable) -> int:
     """
     >>> p = lambda x: bool(x)
     >>> T = []; segregate(T, p); T
@@ -80,7 +82,7 @@ def segregate(T: list, p: Callable[[Any], bool]) -> int:
             j -= 1
     return i + bool(p(T[i]))
 
-def FMNN_naive(T: list) -> int:
+def FMNN_naive(T: MutableSequence) -> int:
     """
     The time complexity is quadratic in len(T).
     The space complexity is bounded.
@@ -90,7 +92,7 @@ def FMNN_naive(T: list) -> int:
         n += 1
     return n
 
-def FMNN_sort(T: list) -> int:
+def FMNN_sort(T: MutableSequence) -> int:
     """
     The time complexity is linearithmic in len(T).
     The space complexity is that of timsort;
@@ -105,12 +107,13 @@ def FMNN_sort(T: list) -> int:
     return n
 
 
-def FMNN_linear_linear(T: list) -> int:
+def FMNN_linear_linear(T: MutableSequence) -> int:
     """
     The time complexity is linear in len(T).
     The space complexity is also linear in len(T).
     """
-    is_here = [False] * len(T)     
+    
+    is_here = [False] * (len(T) + 1)
     for t in T:
         if is_in_range(len(T))(t):
             is_here[t] = True
