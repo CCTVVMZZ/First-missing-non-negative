@@ -1,12 +1,16 @@
-from typing import Any
-from collections.abc import Callable, MutableSequence
-from numbers import Integral
+import itertools # for count
+import numbers # for Integral 
 
 
 def is_in_range(x, start, stop = None, step = 1):
     """
-    A naive implementation would be:
-    return lambda x: x in range(start, stop, step)
+    A naive implementation would be
+
+    if stop is None:
+         start, stop = 0, start
+    return x in range(start, stop, step)
+    
+    However, numpy.int64(1_000_000_000) in range(10_000_000_000) takes forever.
 
     >>> all(is_in_range(x, stop) for x, stop in [(5, 8), (0, 5), (3, 4)])
     True
@@ -21,18 +25,18 @@ def is_in_range(x, start, stop = None, step = 1):
     >>> any(is_in_range(x, start, stop, step) for x, start, stop, step in [(2, 1, 9, 2), (7, 2, 7, 2), (-6, 1, -10, - 3)])
     False
     """
-    
     if step == 0: raise ValueError("is_in_range() arg 3 must not be zero")
-    if not isinstance(x, Integral):
+    if not isinstance(x, numbers.Integral):
         return False
     if stop is None:
          start, stop = 0, start
-    q, r = divmod(x - start, step)
-    if r != 0 or q < 0:
-        return False
-    if step > 0:
-        return x < stop
-    return x > stop
+    if step < 0:
+        if not (stop < x <= start):
+            return False
+    else:
+        if not (start <= x < stop):
+            return False
+    return (x - start) % step == 0       
 
 def segregate(T, p):
     """
@@ -80,16 +84,16 @@ def segregate(T, p):
 
 def FMNN_naive(T):
     """
-    The time complexity is quadratic in len(T).
+    The time complexity is quadratic in len(T).  
     The space complexity is bounded.
-    """    
-    return min(n for n in range(len(T) + 1) if n not in T) 
+    """
+    return next(n for n in itertools.count() if n not in T) 
 
 def FMNN_sort(T):
     """
     The time complexity is linearithmic in len(T).
-    The space complexity is that of timsort;
-    it could be bounded if timsort was replaced with, say, heapsort.
+    The space complexity is that of sorting T.
+    The algorithm permutates T.
     """
     
     n = len(T)
@@ -102,6 +106,7 @@ def FMNN_sort(T):
 
 def FMNN_linear_linear(T):
     """
+    T is not modified.
     The time complexity is linear in len(T).
     The space complexity is also linear in len(T).
     """
@@ -117,6 +122,7 @@ def FMNN_linear_linear(T):
     
 def FMNN_linear_const(T):
     """
+    The algorithm permutates T.
     The time complexity is linear in len(T).
     The space complexity is bounded. 
     """
