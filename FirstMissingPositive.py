@@ -25,6 +25,7 @@ def is_in_range(x, start, stop = None, step = 1):
     >>> any(is_in_range(x, start, stop, step) for x, start, stop, step in [(2, 1, 9, 2), (7, 2, 7, 2), (-6, 1, -10, - 3)])
     False
     """
+    
     if step == 0: raise ValueError("is_in_range() arg 3 must not be zero")
     if not isinstance(x, numbers.Integral):
         return False
@@ -36,10 +37,21 @@ def is_in_range(x, start, stop = None, step = 1):
     else:
         if not (start <= x < stop):
             return False
-    return (x - start) % step == 0       
+    return (x - start) % step == 0
+
 
 def segregate(T, p):
     """
+    Input:
+    T is a list (the class of T must supply __getitem__, __setitem__, and __len__) and
+    p is a one-argument callable (the predicate).
+
+    Output:
+    The function permutates T and returns a non-negative integer n such that    
+    all(p(t) for t in T[:n]) and not any(p(t) for t in T[n:]) 
+
+    If T then the predicate p is called exactly len(T) times.
+
     >>> p = lambda x: bool(x)
     >>> T = []; segregate(T, p); T
     0
@@ -62,19 +74,22 @@ def segregate(T, p):
     >>> T = [1, 0, 1, 0, 1]; segregate(T, p); T
     3
     [1, 1, 1, 0, 0]
-    >>> T = [1, 1, 1, 0, 0, 0]; segregate(T, p); T
-    3
+    >>> T = [1, 1, 1, 0, 0, 0]; n = segregate(T, p); T
     [1, 1, 1, 0, 0, 0]
-
-    If T != [] then the predicate p is called exactly len(T) times.
-   """
+    >>> all(p(t) for t in T[:n]) and not any(p(t) for t in T[n:]) 
+    True
+    """
+    
     if not T:
         return 0
     i = 0
     j = len(T) - 1
     while i < j:
-        # invariant: all(p(t) for t in T[:i])
-        # invariant: not any(p(t) for t in T[j + 1:])
+        
+        # invariants:
+        assert all(p(t) for t in T[:i])
+        assert not any(p(t) for t in T[j + 1:])
+        
         if p(T[i]):
             i += 1
         else:
@@ -82,79 +97,104 @@ def segregate(T, p):
             j -= 1
     return i + bool(p(T[i]))
 
-def FMNN_naive(T):
-    """
-    The time complexity is quadratic in len(T).  
-    The space complexity is bounded.
-    """
-    return next(n for n in itertools.count() if n not in T) 
 
-def FMNN_sort(T):
+def FMNNI_naive(T):
     """
-    The time complexity is linearithmic in len(T).
-    The space complexity is that of sorting T.
+    Input:
+    The class of T must supply __contains__ and that's it !
+
+    If T == list(range(n)) for some positive integer n then the time complexity is quadratic in n.
+    """
+    
+    return next(n for n in itertools.count() if n not in T)
+
+
+def FMNNI_sort(T):
+    """
+    Input:
+    T is a list.
+
+    The time and space complexities are that of sorting T with python's timsort algorithm.
     The algorithm permutates T.
     """
     
-    n = len(T)
+    n = len(T)  
     T.sort(key = lambda x: x if is_in_range(x, n) else n)
-    n = 0
-    it = iter(T)
-    while n in it: n += 1
-    return n
+    # from the docs: "The C implementation of Python makes the list appear empty for the duration"
+    i = 0
+    iterT = iter(T)
+    while i in iterT:
+        i += 1
+    return i
 
 
-def FMNN_linear_linear(T):
+def FMNNI_linear_linear(T):
     """
+    Input:
+    T is a list (the class of T must supply __getitem__ and __len__).    
+
     T is not modified.
-    The time complexity is linear in len(T).
-    The space complexity is also linear in len(T).
+    The time and space complexities are linear in len(T).
     """
-    
-    is_here = [False] * (len(T) + 1)
+
+    n = len(T)
+    is_here = [False] * (n + 1)
     for t in T:
-        if is_in_range(t, len(T)):
+        if is_in_range(t, n):
             is_here[t] = True
-    n = 0
-    while is_here[n]:
-        n += 1
-    return n
+
+    # invariant:
+    assert all(is_here[i] == (i in T) for i in range(n + 1)) 
+
+    i = 0
+    while is_here[i]:
+        i += 1
+    return i
+
     
-def FMNN_linear_const(T):
+def FMNNI_linear_const(T):
     """
     The algorithm permutates T.
     The time complexity is linear in len(T).
     The space complexity is bounded. 
     """
-    
-    for i in range(len(T)):
-        assert all(T[j] == j for j in T[:i] if is_in_range(j, len(T))) # Invariant
+
+    n = len(T)
+    for i in range(n):
+
+        # invariant:
+        assert all(T[j] == j for j in T[:i] if is_in_range(j, n))
+        
         j = T[i]
-        while is_in_range(j, len(T)) and j != T[j]:
-            assert T[i] != i and T[T[i]] != T[i] # Invariant
-            # Swapping T[i] and T[j] ...
+        while is_in_range(j, n) and j != T[j]:
+
+            # invariants:
+            assert T[i] != i
+            assert T[T[i]] != T[i]
+            
             T[i] = T[j] # The number of fixed points does not decrease 
             T[j] = j    # The number of fixed points increases by one
-            # ... T[i] and T[j] are swapped.
+            # T[i] and T[j] are swapped.
             j = T[i]
-    assert all(T[j] == j for j in T if is_in_range(j, len(T))) # Invariant
-    n = 0
-    while n < len(T) and T[n] == n:
-        n += 1
-    return n
+
+    # invariant:
+    assert all(T[i] == i for i in T if is_in_range(i, n))
+    
+    i = 0
+    while i < n and T[i] == i:
+        i += 1
+    return i
     
             
 test_set = [[0, 1, 2, 3],
             [3, 2, 0, 1], 
-            [7, 5, 8, 0, 3, "toto", 1, 15, 2, 5, 2, 0, 1, 5, "aze"], 
+            [7, 5, 8, 0, 3, "toto", 1, 15, 2, 3.14159, 5, -6, 2, 0, 1, 5, "caca"],
+            list("123456789")
             ]
 
 for T in test_set:
-    print(FMNN_naive(T.copy())
-          == FMNN_sort(T.copy())
-          == FMNN_linear_linear(T.copy())
-          == FMNN_linear_const(T.copy())
-          )
+    print(FMNNI_naive(T), FMNNI_sort(T.copy()), FMNNI_linear_linear(T), FMNNI_linear_const(T.copy()))
+
         
 if __name__ == "__main__":
     print("Entering doctest mode !")
