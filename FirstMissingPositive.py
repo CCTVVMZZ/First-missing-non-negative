@@ -9,11 +9,27 @@ FMNNI_sort,
 FMNNI_linear_linear, and 
 FMNNI_linear_const.
 
->>> T = [0, 1, 2, 3]; FMNNI_naive(T); FMNNI_sort(T.copy()); FMNNI_linear_linear(T); FMNNI_linear_const(T.copy())
-4
-4
-4
-4
+>>> test = lambda T: (FMNNI_naive(T), FMNNI_sort(T.copy()), FMNNI_linear_linear(T), FMNNI_linear_const(T.copy())) 
+>>> T = []; test(T)
+(0, 0, 0, 0)
+>>> T = [0]; test(T)
+(1, 1, 1, 1)
+>>> T = [0, 1, 2, 3]; test(T) 
+(4, 4, 4, 4)
+>>> T = [1, 3, 2, 0]; test(T)  
+(4, 4, 4, 4)
+>>> T = [4, 1, 0, 5]; test(T)  
+(2, 2, 2, 2)
+>>> T = list("123456789"); test(T) 
+(0, 0, 0, 0)
+>>> T = [0, 101, 1, 103, 0, 100, 101, 100, 2, 4, 0, 2, 1, 1, 103, 2, 0, 1]; test(T)
+(3, 3, 3, 3)
+>>> import numpy as np
+>>> T = [np.int8(t) for t in T]; test(T)  
+(3, 3, 3, 3)
+>>> T = [7, 5, np.uint32(8), 0, np.int64(3), "toto", 1, 150000, 2, 3.14159, 5, -6, 2, 0, 1, 5, "caca"]; test(T)
+(4, 4, 4, 4)
+>>> 
 """
 
 import itertools # for count
@@ -168,13 +184,13 @@ def FMNNI_linear_linear(T):
     """
 
     n = len(T)
-    is_here = [False] * (n + 1)
+    is_here = [False] * (n + 1) # is_here[n] serves as a sentinel
     for t in T:
         if is_in_range(t, n):
             is_here[t] = True
 
     # invariant:
-    assert all(is_here[i] == (i in T) for i in range(n + 1)) 
+    assert all(is_here[i] == (i in T) for i in range(n)) 
 
     i = 0
     while is_here[i]:
@@ -217,18 +233,8 @@ def FMNNI_linear_const(T):
     while i < n and T[i] == i:
         i += 1
     return i
-    
-            
-test_set = [[0, 1, 2, 3],
-            [3, 2, 0, 1], 
-            [7, 5, 8, 0, 3, "toto", 1, 150000, 2, 3.14159, 5, -6, 2, 0, 1, 5, "caca"],
-            list("123456789")
-            ]
 
-for T in test_set:
-    print(FMNNI_naive(T), FMNNI_sort(T.copy()), FMNNI_linear_linear(T), FMNNI_linear_const(T.copy()))
-
-        
+       
 if __name__ == "__main__":
     print("Entering doctest mode !")
     import doctest
