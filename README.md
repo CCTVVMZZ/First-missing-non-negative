@@ -1,6 +1,7 @@
 # First-missing-non-negative
 
-The aim of the project is to implement in Python various solutions to the following optimization problem:
+The project started from [this LeetCode puzzle](https://leetcode.com/problems/first-missing-positive/).
+The aim is to implement in Python various solutions to the following optimization problem:
 
 **Name**: First Missing Non-Negative Integer (FMNNI).  
 **Input**: A container `T`.  
