@@ -1,3 +1,21 @@
+"""
+The First Missing Non-Negative Integer (FMNNI) problem is defined as follows:
+ 
+given a container T, find the smallest non-negative integer that is not in T.
+
+This module supplies 4 distinct functions that solve the FMNNI problem on lists: 
+FMNNI_naive, 
+FMNNI_sort, 
+FMNNI_linear_linear, and 
+FMNNI_linear_const.
+
+>>> T = [0, 1, 2, 3]; FMNNI_naive(T); FMNNI_sort(T.copy()); FMNNI_linear_linear(T); FMNNI_linear_const(T.copy())
+4
+4
+4
+4
+"""
+
 import itertools # for count
 import numbers # for Integral 
 
@@ -10,7 +28,11 @@ def is_in_range(x, start, stop = None, step = 1):
          start, stop = 0, start
     return x in range(start, stop, step)
     
-    However, numpy.int64(1_000_000_000) in range(10_000_000_000) takes forever.
+    However, 
+
+    numpy.int64(1_000_000_000) in range(10_000_000_000) 
+
+    takes forever.
 
     >>> all(is_in_range(x, stop) for x, stop in [(5, 8), (0, 5), (3, 4)])
     True
@@ -50,7 +72,16 @@ def segregate(T, p):
     The function permutates T and returns a non-negative integer n such that    
     all(p(t) for t in T[:n]) and not any(p(t) for t in T[n:]) 
 
+    The time complexity is linear in len(T).
     If T then the predicate p is called exactly len(T) times.
+    The space complexity is bounded.
+    
+    After executing 
+
+    n = segregate(T, lambda x: is_in_range(x, len(T)))
+
+    the FMNNI of T[:n] is the same as that of the original list T, 
+    so we may alway assume that every element of T is a non-negative integer. 
 
     >>> p = lambda x: bool(x)
     >>> T = []; segregate(T, p); T
@@ -80,8 +111,7 @@ def segregate(T, p):
     True
     """
     
-    if not T:
-        return 0
+    if not T: return 0
     i = 0
     j = len(T) - 1
     while i < j:
@@ -101,7 +131,7 @@ def segregate(T, p):
 def FMNNI_naive(T):
     """
     Input:
-    The class of T must supply __contains__ and that's it !
+    T is any object that supports the in operator.
 
     If T == list(range(n)) for some positive integer n then the time complexity is quadratic in n.
     """
@@ -114,7 +144,7 @@ def FMNNI_sort(T):
     Input:
     T is a list.
 
-    The time and space complexities are that of sorting T with python's timsort algorithm.
+    The time and space complexities are that of sorting T in place with python's timsort algorithm.
     The algorithm permutates T.
     """
     
@@ -131,7 +161,7 @@ def FMNNI_sort(T):
 def FMNNI_linear_linear(T):
     """
     Input:
-    T is a list (the class of T must supply __getitem__ and __len__).    
+    T is a list (T must be iterable and its class must supply __len__).   
 
     T is not modified.
     The time and space complexities are linear in len(T).
@@ -154,6 +184,9 @@ def FMNNI_linear_linear(T):
     
 def FMNNI_linear_const(T):
     """
+    Input:
+    T is a list (the class of T must supply __getitem__, __setitem__, and __len__).   
+ 
     The algorithm permutates T.
     The time complexity is linear in len(T).
     The space complexity is bounded. 
@@ -188,7 +221,7 @@ def FMNNI_linear_const(T):
             
 test_set = [[0, 1, 2, 3],
             [3, 2, 0, 1], 
-            [7, 5, 8, 0, 3, "toto", 1, 15, 2, 3.14159, 5, -6, 2, 0, 1, 5, "caca"],
+            [7, 5, 8, 0, 3, "toto", 1, 150000, 2, 3.14159, 5, -6, 2, 0, 1, 5, "caca"],
             list("123456789")
             ]
 
